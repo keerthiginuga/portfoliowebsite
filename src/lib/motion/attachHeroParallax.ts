@@ -15,8 +15,8 @@ export function attachHeroParallax(): () => void {
   const heroCards = Array.from(group.querySelectorAll(".v2-hero-card")) as HTMLElement[];
   if (!heroCards.length) return () => {};
 
-  let heroPointer = { x: 0, y: 0 };
-  let heroCurrent = { x: 0, y: 0 };
+  const heroPointer = { x: 0, y: 0 };
+  const heroCurrent = { x: 0, y: 0 };
   let heroScrollOffset = 0;
   let heroMotionScale = getMotionScale(HERO_CONFIG.touchScale);
   let heroAnimFrame: number | null = null;

@@ -2,7 +2,7 @@
 
 import type { MotionProject } from "@/content/projects";
 import { usePathname, useRouter } from "next/navigation";
-import { type ReactNode, useEffect, useLayoutEffect, useRef } from "react";
+import { type ReactNode, useEffect, useLayoutEffect } from "react";
 import { attachHeroParallax } from "@/lib/motion/attachHeroParallax";
 import { attachLogoRotation } from "@/lib/motion/attachLogoRotation";
 import { attachQuoteCursor } from "@/lib/motion/attachQuoteCursor";
@@ -25,8 +25,6 @@ function navigateWithTransition(router: ReturnType<typeof useRouter>, href: stri
 export function HomeMotionClient({ motionProjects, children }: Props) {
   const router = useRouter();
   const pathname = usePathname();
-  const projectsRef = useRef(motionProjects);
-  projectsRef.current = motionProjects;
 
   useEffect(() => {
     document.body.classList.remove("v2-page-transitioning");
@@ -71,7 +69,7 @@ export function HomeMotionClient({ motionProjects, children }: Props) {
             marqueeTrack,
             hitLink,
           },
-          projectsRef.current,
+          motionProjects,
           (href) => navigateWithTransition(router, href),
         ),
       );
@@ -93,7 +91,7 @@ export function HomeMotionClient({ motionProjects, children }: Props) {
       window.removeEventListener("pageshow", onPageShow);
       cleanups.forEach((fn) => fn());
     };
-  }, [pathname, router]);
+  }, [pathname, router, motionProjects]);
 
   return <>{children}</>;
 }
