@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { EB_Garamond } from "next/font/google";
 import localFont from "next/font/local";
-import { SiteFooter } from "@/components/layout/SiteFooter";
-import { SiteHeader } from "@/components/layout/SiteHeader";
 import "@/styles/utilities.css";
 import "@/styles/portfolio-v2.css";
 
@@ -33,9 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${ebGaramond.variable} ${neueHaas.variable}`}>
       <body className="v2-home" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-        <SiteHeader />
         {children}
-        <SiteFooter />
       </body>
     </html>
   );

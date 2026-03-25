@@ -28,7 +28,16 @@ This repo is a sibling of the static project on disk, for example:
 - Global styles: `src/styles/portfolio-v2.css` (ported from static v2; font tokens wired to `next/font`).
 - Fonts: **EB Garamond** (Google) + **Neue Haas Grotesk Text** trial OTF in `src/assets/fonts/`.
 - App icon: `src/app/icon.svg` (from static favicon).
-- Layout shell: `SiteHeader` / `SiteFooter` placeholders in `src/components/layout/` (real nav in Part 6).
+- Optional placeholders in `src/components/layout/` for future nav (Part 6); home page includes its own chrome.
+
+## Part 5 — structured content (done)
+
+- `src/content/projects.ts` — typed projects, `getAllProjects()`, `getSelectWorksProjects()`, `getProjectBySlug()`, case-study slugs.
+- `src/content/navigation.ts` — primary nav labels + paths for Next.
+- `src/content/site.ts` — résumé path, email, LinkedIn, source URL.
+- `src/content/home.ts` — hero cards, skills accordion data, quote words.
+- `public/assets/images/` — synced from static `portfolio-v2/assets/images/`; résumé PDF in `public/`.
+- Routes: `/`, `/works`, `/about`, `/playground`, `/work/[slug]` (stubs using shared data).
 
 ```bash
 npm install
