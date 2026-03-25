@@ -1,5 +1,6 @@
 import { lerp } from "@/lib/motion/utils";
 
+/** Matches static `portfolio-v2/script.js` QUOTE_CURSOR_CONFIG (size 120px in CSS). */
 const QUOTE_CURSOR_CONFIG = {
   lerp: 0.35,
 };

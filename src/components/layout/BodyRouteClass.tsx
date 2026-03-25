@@ -10,6 +10,9 @@ export function BodyRouteClass() {
   const pathname = usePathname();
 
   useLayoutEffect(() => {
+    // HomeMotionClient adds this during transition; it unmounts on leave so we must clear it here
+    // or body stays overflow:hidden and case study pages look "stuck" on the hero.
+    document.body.classList.remove("v2-page-transitioning");
     document.body.classList.remove(
       "v2-home",
       "v2-about-page",

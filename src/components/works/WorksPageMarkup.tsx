@@ -6,8 +6,6 @@ const WORKS_TAG_OVERRIDES: Partial<Record<ProjectId, string>> = {
   "google-nest": "UX Research,UX Design,Branding,Design Systems",
   kohler: "UX Research,Product Design,Product Strategy,Systems Thinking",
   kroger: "UX Research,Service Design,Systems Thinking",
-  sync: "UX Research,Interaction Design,Prototyping,Electronics",
-  zillow: "UX Research,UX Design,User Testing",
 };
 
 function worksDataTags(p: Project): string {

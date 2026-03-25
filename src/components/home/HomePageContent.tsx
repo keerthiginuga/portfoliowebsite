@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { MotionProject } from "@/content/projects";
-import { heroCards, quoteWords, skillBlocks } from "@/content/home";
+import { heroCards, quoteLines, skillBlocks } from "@/content/home";
 import { site } from "@/content/site";
 import { HomeSkillsAccordion } from "./HomeSkillsAccordion";
 
@@ -135,12 +135,17 @@ export function HomePageContent({ motionProjects }: Props) {
         <div className="v2-quote-sticky">
           <div className="v2-quote-inner">
             <p className="v2-quote-text" id="quoteText">
-              {quoteWords.map((w, i) => (
-                <span
-                  key={i}
-                  className={`v2-quote-word${w.italic ? " v2-quote-word--italic" : ""}`}
-                >
-                  {w.text}
+              {quoteLines.map((line, lineIndex) => (
+                <span key={lineIndex} className="v2-quote-line">
+                  {line.map((w, wi) => (
+                    <span
+                      key={wi}
+                      className={`v2-quote-word${w.italic ? " v2-quote-word--italic" : ""}`}
+                    >
+                      {w.text}
+                      {wi < line.length - 1 ? " " : ""}
+                    </span>
+                  ))}
                 </span>
               ))}
             </p>
@@ -152,8 +157,6 @@ export function HomePageContent({ motionProjects }: Props) {
           </div>
         </div>
       </section>
-
-      <div className="v2-quote-cursor" id="quoteCursor" aria-hidden="true" />
 
       <footer className="v2-footer" id="contact">
         <div className="v2-footer-inner">

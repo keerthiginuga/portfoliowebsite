@@ -7,6 +7,7 @@ import { DeviceGateScript } from "@/components/layout/DeviceGateScript";
 import { NavGlassFilter } from "@/components/layout/NavGlassFilter";
 import { PortfolioSiteHeader } from "@/components/layout/PortfolioSiteHeader";
 import { getSiteUrl, site } from "@/content/site";
+import "lenis/dist/lenis.css";
 import "@/styles/utilities.css";
 import "@/styles/portfolio-v2.css";
 import "@/styles/device-gate.css";

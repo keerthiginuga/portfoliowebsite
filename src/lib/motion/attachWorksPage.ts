@@ -4,6 +4,13 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { updateNavOnScroll } from "@/lib/nav/portfolioNavScroll";
 import { clampValue, lerp } from "@/lib/motion/utils";
 
+/** Persist scroll when opening a case study so Back / return to /works restores the same stack position. */
+const WORKS_RESTORE_STORAGE_KEY = "portfolio-works-restore-v1";
+const WORKS_RESTORE_MAX_AGE_MS = 30 * 60 * 1000;
+/** v:2 payload: how far “back” along slide k’s rise the re-entry tween starts (0…1 progress). */
+const RESTORE_SLIDE_INTRO_DELTA = 0.3;
+const RESTORE_REENTRY_DURATION_S = 0.65;
+
 /**
  * Port of portfolio-v2/works-script.js — Lenis + ScrollTrigger stack, nav driven via Lenis scroll.
  * Caller must not use window scroll listeners for `.v2-nav` on /works (see PortfolioSiteHeader).
@@ -29,6 +36,7 @@ export function attachWorksPage(onNavigate: (href: string) => void): () => void 
   const cursorEl = document.getElementById("viewCursor");
   const nav = document.querySelector<HTMLElement>(".v2-nav");
   const mainLogo = document.getElementById("mainLogo");
+  const footer = document.getElementById("contact");
 
   if (!sticky || !slides.length || !imgStack || !main) {
     return () => {};
@@ -97,7 +105,9 @@ export function attachWorksPage(onNavigate: (href: string) => void): () => void 
 
   function setCursorLabelForProject(projectIndex: number) {
     if (!cursorEl) return;
-    cursorEl.innerText = projectIndex >= 5 ? "Coming soon" : "view";
+    const slide = slides[projectIndex];
+    const href = slide?.getAttribute("data-nav-href")?.trim();
+    cursorEl.innerText = href ? "view" : "Coming soon";
   }
 
   function getSlideHitFromPoint(x: number, y: number): number {
@@ -211,6 +221,63 @@ export function attachWorksPage(onNavigate: (href: string) => void): () => void 
     }
   }
 
+  /** Transition progress 0…1 for slide index i≥1 at a given stage scroll (matches animLoop). */
+  function rawProgressForSlide(i: number, stageScroll: number): number {
+    if (i < 1) return 0;
+    const pos = Math.max(0, stageScroll);
+    const itemStartScroll = (i - 1) * SCROLL_PER_ITEM;
+    const transStartScroll = itemStartScroll + HOLD_DIST;
+    let rawProgress = 0;
+    if (pos > transStartScroll) {
+      rawProgress = (pos - transStartScroll) / TRANS_DIST;
+    }
+    return clampValue(rawProgress, 0, 1);
+  }
+
+  /**
+   * Snap slide transforms to the pinned “stage” scroll (0 … pinDist).
+   * Must match pin onUpdate’s `progress * pinDist` — NOT document `lenis.scroll`, or layers desync
+   * and SONIX (slide 0) shows under the top card instead of the previous project.
+   */
+  function syncSlideTransformsToStage(stageScroll: number) {
+    const pos = Math.max(0, stageScroll);
+    currentY[0] = 0;
+    targetY[0] = 0;
+    ySetters[0](0);
+
+    for (let i = 1; i < slides.length; i++) {
+      const rawProgress = rawProgressForSlide(i, pos);
+      const y = startYPercent * (1 - rawProgress);
+      currentY[i] = y;
+      targetY[i] = y;
+      ySetters[i](y);
+    }
+  }
+
+  function normalizePathForWorksHref(href: string): string {
+    const t = href.trim();
+    if (!t) return "";
+    try {
+      if (t.startsWith("http://") || t.startsWith("https://")) {
+        return new URL(t).pathname.replace(/\/$/, "") || "/";
+      }
+    } catch {
+      /* ignore */
+    }
+    return t.split("?")[0].replace(/\/$/, "") || "/";
+  }
+
+  function findSlideIndexForHref(href: string): number | null {
+    const want = normalizePathForWorksHref(href);
+    if (!want) return null;
+    for (let i = 0; i < slides.length; i++) {
+      const h = slides[i]?.getAttribute("data-nav-href")?.trim();
+      if (!h) continue;
+      if (normalizePathForWorksHref(h) === want) return i;
+    }
+    return null;
+  }
+
   function preserveSlideProgress(prevStartYPercent: number) {
     if (!prevStartYPercent || prevStartYPercent <= 0) return;
 
@@ -231,19 +298,42 @@ export function attachWorksPage(onNavigate: (href: string) => void): () => void 
     }
   }
 
+  /** Set after first ScrollTrigger.create — avoids remeasuring margin while pin is active. */
+  let pinScrollTrigger: ScrollTrigger | null = null;
+
   function recomputeMetrics(preserveSlides: boolean) {
     const prevStart = startYPercent;
+    const pinActive = pinScrollTrigger?.isActive === true;
 
-    mainEl.style.display = "";
-    mainEl.style.minHeight = "";
-    mainEl.style.paddingBottom = "";
-    stickyEl.style.marginTop = "";
-    stickyTop = stickyEl.getBoundingClientRect().top;
+    /*
+     * stickyTop must match flex-end placement at scroll 0. Measuring while scrolled (e.g. restore)
+     * yields a tiny rect.top → marginTop collapses and the stack hugs the top. Pin residue
+     * (position:fixed) also pulls #worksSticky out of the flex flow.
+     * When the pin is active, rect.top is viewport-fixed, not flow — skip margin remeasure.
+     */
+    if (!pinActive) {
+      const savedScroll = lenis.scroll;
+      lenis.scrollTo(0, { immediate: true });
+      ScrollTrigger.update();
 
-    mainEl.style.display = "block";
-    mainEl.style.minHeight = "";
-    mainEl.style.paddingBottom = "0";
-    stickyEl.style.marginTop = `${stickyTop}px`;
+      gsap.set(stickyEl, { clearProps: "transform,top,left,position,width,maxWidth" });
+
+      mainEl.style.display = "";
+      mainEl.style.minHeight = "";
+      mainEl.style.paddingBottom = "";
+      stickyEl.style.marginTop = "";
+
+      void mainEl.offsetHeight;
+      stickyTop = stickyEl.getBoundingClientRect().top;
+
+      mainEl.style.display = "block";
+      mainEl.style.minHeight = "";
+      mainEl.style.paddingBottom = "0";
+      stickyEl.style.marginTop = `${stickyTop}px`;
+
+      lenis.scrollTo(savedScroll, { immediate: true });
+      ScrollTrigger.update();
+    }
 
     const stackRect = stackEl.getBoundingClientRect();
     const distToVpBottom = window.innerHeight - stackRect.top;
@@ -266,26 +356,148 @@ export function attachWorksPage(onNavigate: (href: string) => void): () => void 
   recomputeMetrics(false);
   seedSlidesAtStart();
 
-  const pinScrollTrigger = ScrollTrigger.create({
-    scroller: document.documentElement,
-    trigger: stickyEl,
-    start: () => `top ${stickyTop}px`,
-    end: () => `+=${pinDist}`,
-    pin: true,
-    pinSpacing: true,
-    onUpdate(self) {
-      if (hoveredProject !== -1) return;
+  function createWorksPinScrollTrigger(): ScrollTrigger {
+    return ScrollTrigger.create({
+      scroller: document.documentElement,
+      trigger: stickyEl,
+      start: () => `top ${stickyTop}px`,
+      end: () => `+=${pinDist}`,
+      pin: true,
+      pinSpacing: true,
+      onUpdate(self) {
+        if (hoveredProject !== -1) return;
 
-      const scrolled = self.progress * pinDist;
+        const scrolled = self.progress * pinDist;
+        const rawPos = scrolled / SCROLL_PER_ITEM;
+        const active = Math.min(NUM_TRANSITIONS, Math.max(0, Math.round(rawPos)));
+        setActiveInfoItem(active);
+
+        if (hasInteracted) {
+          updateGlobalTags(active);
+        }
+      },
+    });
+  }
+
+  pinScrollTrigger = createWorksPinScrollTrigger();
+
+  let reentrySlideIndex: number | null = null;
+  let reentryTween: gsap.core.Tween | null = null;
+
+  function killReentryTween() {
+    if (reentryTween) {
+      reentryTween.kill();
+      reentryTween = null;
+    }
+    reentrySlideIndex = null;
+  }
+
+  type WorksRestoreRead = {
+    scroll: number;
+    href: string | null;
+  };
+
+  function readAndClearWorksRestorePayload(): WorksRestoreRead | null {
+    if (typeof sessionStorage === "undefined") return null;
+    const raw = sessionStorage.getItem(WORKS_RESTORE_STORAGE_KEY);
+    if (!raw) return null;
+    sessionStorage.removeItem(WORKS_RESTORE_STORAGE_KEY);
+    try {
+      const data = JSON.parse(raw) as { v?: number; scroll?: number; t?: number; href?: string };
+      if (typeof data.scroll !== "number" || !Number.isFinite(data.scroll)) return null;
+      if (typeof data.t === "number" && Date.now() - data.t > WORKS_RESTORE_MAX_AGE_MS) return null;
+
+      const scroll = Math.max(0, data.scroll);
+      if (data.v === 2 && typeof data.href === "string" && data.href.trim()) {
+        return { scroll, href: data.href.trim() };
+      }
+      if (data.v === 1 || data.v === undefined || data.v === 2) {
+        return { scroll, href: null };
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Call after pin + metrics are valid. Consumes sessionStorage (one shot). */
+  function applyWorksScrollRestore() {
+    if (destroyed) return;
+    const payload = readAndClearWorksRestorePayload();
+    if (payload == null) return;
+
+    const maxScroll = lenis.limit;
+    const scroll = clampValue(payload.scroll, 0, maxScroll);
+
+    hasInteracted = true;
+    hoveredProject = -1;
+
+    killReentryTween();
+
+    lenis.scrollTo(scroll, { immediate: true });
+    ScrollTrigger.update();
+    ScrollTrigger.refresh();
+
+    const stageScroll = pinScrollTrigger ? pinScrollTrigger.progress * pinDist : 0;
+
+    const k =
+      payload.href != null && payload.href.length > 0 ? findSlideIndexForHref(payload.href) : null;
+
+    if (k != null && k >= 1) {
+      syncSlideTransformsToStage(stageScroll);
+      const rawEnd = rawProgressForSlide(k, stageScroll);
+      const rawStart = clampValue(rawEnd - RESTORE_SLIDE_INTRO_DELTA, 0, rawEnd);
+      const yEnd = startYPercent * (1 - rawEnd);
+      const yStart = startYPercent * (1 - rawStart);
+
+      if (Math.abs(yStart - yEnd) < 0.5) {
+        syncSlideTransformsToStage(stageScroll);
+      } else {
+        currentY[k] = yStart;
+        targetY[k] = yStart;
+        ySetters[k](yStart);
+
+        reentrySlideIndex = k;
+        const tweenState = { y: yStart };
+        reentryTween = gsap.to(tweenState, {
+          y: yEnd,
+          duration: RESTORE_REENTRY_DURATION_S,
+          ease: "power2.out",
+          onUpdate: () => {
+            const y = tweenState.y;
+            currentY[k] = y;
+            targetY[k] = y;
+            ySetters[k](y);
+          },
+          onComplete: () => {
+            reentryTween = null;
+            reentrySlideIndex = null;
+            currentY[k] = yEnd;
+            targetY[k] = yEnd;
+            ySetters[k](yEnd);
+          },
+        });
+      }
+    } else {
+      syncSlideTransformsToStage(stageScroll);
+    }
+
+    scrollVelocity = 0;
+
+    lastScroll = scroll;
+    if (nav) lastNavScroll = updateNavOnScroll(nav, scroll, 0);
+    updateLogoRotation(scroll);
+
+    if (pinScrollTrigger) {
+      const scrolled = pinScrollTrigger.progress * pinDist;
       const rawPos = scrolled / SCROLL_PER_ITEM;
       const active = Math.min(NUM_TRANSITIONS, Math.max(0, Math.round(rawPos)));
       setActiveInfoItem(active);
+      updateGlobalTags(active);
+    }
 
-      if (hasInteracted) {
-        updateGlobalTags(active);
-      }
-    },
-  });
+    pBaseY = calcBase();
+  }
 
   let scrollVelocity = 0;
   let lastScroll = 0;
@@ -324,18 +536,20 @@ export function attachWorksPage(onNavigate: (href: string) => void): () => void 
 
   function animLoop() {
     if (destroyed) return;
-    const scrollPos = Math.max(0, lenis.scroll);
+    const stageScroll = pinScrollTrigger ? pinScrollTrigger.progress * pinDist : 0;
     const velAbs = Math.abs(scrollVelocity);
     const velNorm = Math.min(velAbs / MAX_VELOCITY, 1);
     const velBoost = velNorm * MAX_BOOST;
 
     for (let i = 1; i < slides.length; i++) {
+      if (reentrySlideIndex === i) continue;
+
       const itemStartScroll = (i - 1) * SCROLL_PER_ITEM;
       const transStartScroll = itemStartScroll + HOLD_DIST;
 
       let rawProgress = 0;
-      if (scrollPos > transStartScroll) {
-        rawProgress = (scrollPos - transStartScroll) / TRANS_DIST;
+      if (stageScroll > transStartScroll) {
+        rawProgress = (stageScroll - transStartScroll) / TRANS_DIST;
       }
       rawProgress = clampValue(rawProgress, 0, 1);
 
@@ -529,7 +743,19 @@ export function attachWorksPage(onNavigate: (href: string) => void): () => void 
     if (hoveredProject < 0) return;
     const slide = slides[hoveredProject];
     const href = slide?.getAttribute("data-nav-href")?.trim();
-    if (href) onNavigate(href);
+    if (!href) return;
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.setItem(
+        WORKS_RESTORE_STORAGE_KEY,
+        JSON.stringify({
+          v: 2 as const,
+          scroll: lenis.scroll,
+          t: Date.now(),
+          href,
+        }),
+      );
+    }
+    onNavigate(href);
   };
 
   const onDocMouseLeave = () => hideCustomCursor();
@@ -548,10 +774,11 @@ export function attachWorksPage(onNavigate: (href: string) => void): () => void 
     document.addEventListener("visibilitychange", onVisibility);
   }
 
-  const footer = document.getElementById("contact");
   let footerTween: gsap.core.Tween | null = null;
-  if (footer && row) {
-    footerTween = gsap.to(row, {
+
+  function initFooterRowScrollEffect(): gsap.core.Tween | null {
+    if (!footer || !row) return null;
+    return gsap.to(row, {
       scrollTrigger: {
         scroller: document.documentElement,
         trigger: footer,
@@ -565,6 +792,77 @@ export function attachWorksPage(onNavigate: (href: string) => void): () => void 
       ease: "none",
     });
   }
+
+  footerTween = initFooterRowScrollEffect();
+
+  function recoverWorksLayout(fromBfcache: boolean) {
+    if (destroyed) return;
+    if (fromBfcache) {
+      ScrollTrigger.getAll().forEach((st) => {
+        st.kill(true);
+      });
+      pinScrollTrigger = null;
+      footerTween?.scrollTrigger?.kill();
+      footerTween?.kill();
+      footerTween = null;
+      if (row) {
+        gsap.killTweensOf(row);
+        gsap.set(row, { clearProps: "opacity,transform" });
+      }
+      lenis.resize();
+      recomputeMetrics(true);
+      pinScrollTrigger = createWorksPinScrollTrigger();
+      footerTween = initFooterRowScrollEffect();
+    }
+    lenis.resize();
+    ScrollTrigger.refresh();
+    if (!fromBfcache) {
+      recomputeMetrics(true);
+    }
+    ScrollTrigger.refresh();
+    if (fromBfcache) {
+      lenis.scrollTo(lenis.scroll, { immediate: true });
+      ScrollTrigger.refresh();
+    }
+    applyWorksScrollRestore();
+  }
+
+  const onPageShow = (ev: PageTransitionEvent) => {
+    if (destroyed) return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        recoverWorksLayout(ev.persisted);
+      });
+    });
+  };
+
+  const onPageHide = () => {
+    if (destroyed) return;
+    ScrollTrigger.getAll().forEach((st) => {
+      st.kill(true);
+    });
+    pinScrollTrigger = null;
+    footerTween?.scrollTrigger?.kill();
+    footerTween?.kill();
+    footerTween = null;
+    if (row) {
+      gsap.killTweensOf(row);
+      gsap.set(row, { clearProps: "opacity,transform" });
+    }
+  };
+
+  window.addEventListener("pageshow", onPageShow);
+  window.addEventListener("pagehide", onPageHide);
+
+  /* Next.js client navigations do not fire pageshow; reflow after paint when assets settle. */
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (destroyed) return;
+      recomputeMetrics(true);
+      ScrollTrigger.refresh();
+      applyWorksScrollRestore();
+    });
+  });
 
   function handleResize() {
     if (resizeTimer) clearTimeout(resizeTimer);
@@ -585,6 +883,8 @@ export function attachWorksPage(onNavigate: (href: string) => void): () => void 
   return () => {
     destroyed = true;
 
+    killReentryTween();
+
     if (resizeTimer) clearTimeout(resizeTimer);
     if (pStopTimer) clearTimeout(pStopTimer);
     if (hoverSyncRaf != null) cancelAnimationFrame(hoverSyncRaf);
@@ -593,6 +893,8 @@ export function attachWorksPage(onNavigate: (href: string) => void): () => void 
 
     window.removeEventListener("resize", handleResize);
     window.removeEventListener("orientationchange", handleResize);
+    window.removeEventListener("pageshow", onPageShow);
+    window.removeEventListener("pagehide", onPageHide);
 
     if (cursorEl) {
       document.removeEventListener("mousemove", onDocMouseMove);
@@ -612,9 +914,9 @@ export function attachWorksPage(onNavigate: (href: string) => void): () => void 
 
     hideCustomCursor();
 
-    footerTween?.scrollTrigger?.kill();
+    footerTween?.scrollTrigger?.kill(true);
     footerTween?.kill();
-    pinScrollTrigger.kill();
+    pinScrollTrigger?.kill(true);
 
     ScrollTrigger.removeEventListener("refresh", onLenisRefresh);
     unsubLenisST();

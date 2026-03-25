@@ -45,7 +45,6 @@ export function AboutProcessAccordion({
                 width: "100%",
                 background: "none",
                 border: "none",
-                padding: 0,
                 cursor: "pointer",
                 textAlign: "inherit",
                 color: "inherit",

@@ -9,7 +9,7 @@ type Props = {
 };
 
 export function HomeSkillsAccordion({ eyebrow, blocks }: Props) {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
     <div className={`v2-skills-accordion${openIndex !== null ? " has-active" : ""}`}>
@@ -48,7 +48,6 @@ export function HomeSkillsAccordion({ eyebrow, blocks }: Props) {
                 width: "100%",
                 background: "none",
                 border: "none",
-                padding: 0,
                 cursor: "pointer",
                 textAlign: "inherit",
                 color: "inherit",

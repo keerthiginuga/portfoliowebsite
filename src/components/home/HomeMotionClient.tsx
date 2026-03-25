@@ -3,12 +3,19 @@
 import type { MotionProject } from "@/content/projects";
 import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import { attachHeroParallax } from "@/lib/motion/attachHeroParallax";
+import { attachHomeLenis } from "@/lib/motion/attachHomeLenis";
 import { attachLogoRotation } from "@/lib/motion/attachLogoRotation";
 import { attachQuoteCursor } from "@/lib/motion/attachQuoteCursor";
 import { attachQuoteSection } from "@/lib/motion/attachQuoteSection";
 import { attachSeeAllWorks } from "@/lib/motion/attachSeeAllWorks";
 import { attachSelectWorks } from "@/lib/motion/attachSelectWorks";
+import {
+  clampDocumentScrollY,
+  HOME_SCROLL_RESTORE_KEY,
+  saveHomeScrollBeforeWorkNavigation,
+} from "@/lib/motion/homeScrollRestore";
 
 type Props = {
   motionProjects: MotionProject[];
@@ -17,6 +24,9 @@ type Props = {
 
 function navigateWithTransition(router: ReturnType<typeof useRouter>, href: string) {
   document.body.classList.add("v2-page-transitioning");
+  if (href.startsWith("/work/")) {
+    saveHomeScrollBeforeWorkNavigation();
+  }
   window.setTimeout(() => {
     router.push(href);
   }, 400);
@@ -36,9 +46,34 @@ export function HomeMotionClient({ motionProjects, children }: Props) {
     if ("scrollRestoration" in history) {
       history.scrollRestoration = "manual";
     }
-    window.scrollTo(0, 0);
 
+    let raw: string | null = null;
+    try {
+      raw = sessionStorage.getItem(HOME_SCROLL_RESTORE_KEY);
+    } catch {
+      raw = null;
+    }
+
+    let y: number | null = null;
+    if (raw != null) {
+      const n = Number(raw);
+      if (Number.isFinite(n) && n >= 0) y = n;
+    }
+
+    const initialY = y !== null ? clampDocumentScrollY(y) : 0;
+    const nav = document.querySelector(".v2-nav") as HTMLElement | null;
     const cleanups: (() => void)[] = [];
+
+    cleanups.push(attachHomeLenis(nav, initialY));
+
+    const raf = requestAnimationFrame(() => {
+      try {
+        sessionStorage.removeItem(HOME_SCROLL_RESTORE_KEY);
+      } catch {
+        /* ignore */
+      }
+    });
+    cleanups.push(() => cancelAnimationFrame(raf));
 
     cleanups.push(attachHeroParallax());
     cleanups.push(attachLogoRotation());
@@ -89,9 +124,23 @@ export function HomeMotionClient({ motionProjects, children }: Props) {
 
     return () => {
       window.removeEventListener("pageshow", onPageShow);
-      cleanups.forEach((fn) => fn());
+      cleanups.forEach((fn) => {
+        fn();
+      });
     };
   }, [pathname, router, motionProjects]);
 
-  return <>{children}</>;
+  return (
+    <>
+      {pathname === "/" && typeof document !== "undefined"
+        ? createPortal(
+            <div className="v2-quote-cursor" id="quoteCursor" aria-hidden="true">
+              About me
+            </div>,
+            document.body,
+          )
+        : null}
+      {children}
+    </>
+  );
 }

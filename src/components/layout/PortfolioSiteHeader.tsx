@@ -31,12 +31,15 @@ export function PortfolioSiteHeader() {
     if (!nav) return;
     const menu = bindNavMenu(nav);
     const isCaseStudy = pathname.startsWith("/work/");
+    /* Home: smooth scroll + nav updates run from `attachHomeLenis` in HomeMotionClient. */
     const unscroll =
-      pathname === "/works"
+      pathname === "/"
         ? () => {}
-        : isCaseStudy
-          ? initCaseStudyNavScroll(nav, menu.closeExpandedMenu)
-          : initNavScrollListeners(nav);
+        : pathname === "/works"
+          ? () => {}
+          : isCaseStudy
+            ? initCaseStudyNavScroll(nav, menu.closeExpandedMenu)
+            : initNavScrollListeners(nav);
     return () => {
       menu.cleanup();
       unscroll();
@@ -53,9 +56,18 @@ export function PortfolioSiteHeader() {
 
   return (
     <>
-      <Link href="/" className="v2-logo" id="mainLogo" aria-label="Keerthi home">
+      <a
+        href="/"
+        className="v2-logo"
+        id="mainLogo"
+        aria-label="Keerthi home"
+        onClick={(e) => {
+          e.preventDefault();
+          window.location.assign("/");
+        }}
+      >
         <PortfolioLogo />
-      </Link>
+      </a>
       <nav ref={navRef} className="v2-nav" aria-label="Primary">
         <div className="v2-nav-inner">
           <ul className="v2-nav-links">

@@ -170,8 +170,8 @@ const WORKS_ONLY_PROJECTS: Project[] = [
     href: "/works",
     year: 2024,
     marqueeKey: "SYNC",
-    tags: ["Placeholder Tag"],
-    categories: "Placeholder Category / Tag 2",
+    tags: ["UXR", "IxD", "Proto", "Hardware"],
+    categories: "UX Research / Interaction Design / Prototyping / Electronics",
     description:
       "An intelligent smart sneaker system that translates gait sensor data into real-time haptic feedback and immersive visual insights to prevent running injuries.",
     images: [img("sync.jpg")],
@@ -185,8 +185,8 @@ const WORKS_ONLY_PROJECTS: Project[] = [
     href: "/works",
     year: 2024,
     marqueeKey: "ZILLOW",
-    tags: ["Placeholder Tag"],
-    categories: "Placeholder Category / Tag 2",
+    tags: ["UXR", "UXD", "UT"],
+    categories: "UX Research / UX Design / User Testing",
     description:
       "A usability redesign of Zillow's mobile app to streamline search, filters, and saved listings for renters navigating high-stakes housing decisions.",
     images: [img("zillow.jpg")],

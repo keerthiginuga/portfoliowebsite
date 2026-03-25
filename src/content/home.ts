@@ -84,18 +84,23 @@ export const skillBlocks: SkillBlock[] = [
   },
 ];
 
-export const quoteWords: { text: string; italic?: boolean }[] = [
-  { text: "I" },
-  { text: "love" },
-  { text: "to" },
-  { text: "inspire,", italic: true },
-  { text: "because" },
-  { text: "I" },
-  { text: "know" },
-  { text: "what" },
-  { text: "it's" },
-  { text: "like" },
-  { text: "to" },
-  { text: "be" },
-  { text: "inspired.\"", italic: true },
+/** Three lines — matches static / design comp (line breaks are intentional). */
+export const quoteLines: { text: string; italic?: boolean }[][] = [
+  [
+    { text: "I" },
+    { text: "love" },
+    { text: "to" },
+    { text: "inspire,", italic: true },
+    { text: "because" },
+    { text: "I" },
+  ],
+  [
+    { text: "know" },
+    { text: "what" },
+    { text: "it's" },
+    { text: "like" },
+    { text: "to" },
+    { text: "be" },
+  ],
+  [{ text: "inspired.\"", italic: true }],
 ];
