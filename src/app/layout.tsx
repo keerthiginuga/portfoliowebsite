@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
 import { EB_Garamond } from "next/font/google";
 import localFont from "next/font/local";
+import { AiCodedFab } from "@/components/layout/AiCodedFab";
+import { BodyRouteClass } from "@/components/layout/BodyRouteClass";
+import { DeviceGateScript } from "@/components/layout/DeviceGateScript";
+import { NavGlassFilter } from "@/components/layout/NavGlassFilter";
+import { PortfolioSiteHeader } from "@/components/layout/PortfolioSiteHeader";
 import "@/styles/utilities.css";
 import "@/styles/portfolio-v2.css";
+import "@/styles/device-gate.css";
 
 const ebGaramond = EB_Garamond({
   subsets: ["latin"],
@@ -31,7 +37,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${ebGaramond.variable} ${neueHaas.variable}`}>
       <body className="v2-home" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        <DeviceGateScript />
+        <BodyRouteClass />
+        <NavGlassFilter />
+        <PortfolioSiteHeader />
         {children}
+        <AiCodedFab />
       </body>
     </html>
   );

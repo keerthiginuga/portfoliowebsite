@@ -43,3 +43,12 @@ This repo is a sibling of the static project on disk, for example:
 npm install
 npm run dev
 ```
+
+## Part 6 — shared layout & nav (done)
+
+- **`PortfolioSiteHeader`** — logo (`#mainLogo`), `primaryNav` links, résumé, hamburger; mirrors `components.js` markup / classes.
+- **`src/lib/nav/portfolioNavScroll.ts`** — scroll collapse, background contrast sampling, expanded menu (Escape / outside click), aligned with `nav.js`.
+- **`NavGlassFilter`** — `#nav-glass-filter` SVG for nav glass CSS.
+- **`BodyRouteClass`** — toggles `v2-home` vs `v2-about-page` on the document body for existing CSS.
+- **`AiCodedFab`** — home + about only; uses `site.sourceCodeUrl`.
+- **Device gate** — `src/styles/device-gate.css`, `public/js/device-gate.js`, `DeviceGateScript` (`afterInteractive`).
