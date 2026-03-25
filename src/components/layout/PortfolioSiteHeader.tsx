@@ -7,6 +7,7 @@ import { primaryNav } from "@/content/navigation";
 import { site } from "@/content/site";
 import {
   bindNavMenu,
+  initCaseStudyNavScroll,
   initNavScrollListeners,
   resetNavContrastState,
   scheduleNavContrastUpdate,
@@ -29,12 +30,18 @@ export function PortfolioSiteHeader() {
     const nav = navRef.current;
     if (!nav) return;
     const menu = bindNavMenu(nav);
-    const unscroll = initNavScrollListeners(nav);
+    const isCaseStudy = pathname.startsWith("/work/");
+    const unscroll =
+      pathname === "/works"
+        ? () => {}
+        : isCaseStudy
+          ? initCaseStudyNavScroll(nav, menu.closeExpandedMenu)
+          : initNavScrollListeners(nav);
     return () => {
       menu.cleanup();
       unscroll();
     };
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     const nav = navRef.current;

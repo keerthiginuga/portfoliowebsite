@@ -302,6 +302,85 @@ export function bindNavMenu(nav: HTMLElement): MenuBinding {
   };
 }
 
+/**
+ * Case study pages (static `project-script.js`): logo rotation vs scroll, contrast sampling,
+ * nav stays hamburger-collapsed unless opened; scroll closes expanded menu.
+ */
+export function initCaseStudyNavScroll(
+  nav: HTMLElement,
+  closeExpandedMenu: () => void,
+): () => void {
+  nav.dataset.scrollY = String(window.scrollY);
+  nav.classList.add("nav-collapsed");
+  nav.classList.remove("nav-expanded");
+  syncHamburgerAria(nav);
+
+  let lastScrollY = window.scrollY;
+  let ticking = false;
+
+  const updateLogoRotation = () => {
+    const logo = document.getElementById("mainLogo");
+    if (!logo) return;
+    const scrollY = window.scrollY;
+    const scrollableDist = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = scrollableDist > 0 ? scrollY / scrollableDist : 0;
+    logo.style.transform = `rotate(${(progress * 360).toFixed(1)}deg)`;
+  };
+
+  const tick = () => {
+    const y = window.scrollY;
+    const deltaY = y - lastScrollY;
+
+    nav.dataset.scrollY = String(Math.max(0, y));
+
+    if (y > NAV_SCROLL_THRESHOLD) {
+      nav.classList.add("nav-scrolled");
+    } else {
+      nav.classList.remove("nav-scrolled");
+    }
+
+    scheduleNavContrastUpdate(nav);
+
+    if (nav.classList.contains("nav-expanded")) {
+      if (Math.abs(deltaY) >= NAV_COLLAPSE_DIRECTION_EPSILON) {
+        closeExpandedMenu();
+        nav.classList.add("nav-collapsed");
+      }
+    } else {
+      nav.classList.add("nav-collapsed");
+    }
+
+    updateLogoRotation();
+    syncHamburgerAria(nav);
+
+    lastScrollY = y;
+    ticking = false;
+  };
+
+  const onScroll = () => {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(tick);
+    }
+  };
+
+  const onResize = () => {
+    scheduleNavContrastUpdate(nav);
+  };
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onResize);
+  tick();
+  scheduleNavContrastUpdate(nav);
+
+  return () => {
+    window.removeEventListener("scroll", onScroll);
+    window.removeEventListener("resize", onResize);
+    const logo = document.getElementById("mainLogo");
+    if (logo) logo.style.transform = "";
+  };
+}
+
 export function initNavScrollListeners(nav: HTMLElement): () => void {
   let lastScrollY = window.scrollY;
   let ticking = false;
