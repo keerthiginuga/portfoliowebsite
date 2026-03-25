@@ -10,9 +10,17 @@ export function BodyRouteClass() {
   const pathname = usePathname();
 
   useLayoutEffect(() => {
-    document.body.classList.remove("v2-home", "v2-about-page", "v2-works-page", "v2-case-study");
+    document.body.classList.remove(
+      "v2-home",
+      "v2-about-page",
+      "v2-works-page",
+      "v2-case-study",
+      "v2-playground-page",
+    );
     if (pathname === "/about") {
       document.body.classList.add("v2-about-page");
+    } else if (pathname === "/playground") {
+      document.body.classList.add("v2-home", "v2-playground-page");
     } else if (pathname === "/works") {
       document.body.classList.add("v2-home", "v2-works-page");
     } else if (pathname.startsWith("/work/")) {
