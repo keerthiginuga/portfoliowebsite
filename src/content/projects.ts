@@ -227,6 +227,45 @@ export function getCaseStudySlugs(): string[] {
     .map((p) => p.slug as string);
 }
 
+/** Card data for case-study “more projects” carousel (static `renderMoreProjectsSection`). */
+export type CaseStudyMoreCard = {
+  href: string;
+  title: string;
+  heroImage: string;
+  tags: string[];
+};
+
+/** Other case studies in works order, rotated so the current slug comes first in the ring. */
+export function getMoreCaseStudiesForSlug(currentSlug: string): CaseStudyMoreCard[] {
+  const ordered = getAllProjects().filter((p) => p.hasCaseStudyPage && p.slug);
+  if (ordered.length <= 1) return [];
+
+  const idx = ordered.findIndex((p) => p.slug === currentSlug);
+  const out: CaseStudyMoreCard[] = [];
+
+  if (idx < 0) {
+    return ordered
+      .filter((p) => p.slug !== currentSlug)
+      .map((p) => ({
+        href: p.href,
+        title: p.title,
+        heroImage: p.heroImage,
+        tags: [...p.tags],
+      }));
+  }
+
+  for (let i = 1; i < ordered.length; i++) {
+    const p = ordered[(idx + i) % ordered.length];
+    out.push({
+      href: p.href,
+      title: p.title,
+      heroImage: p.heroImage,
+      tags: [...p.tags],
+    });
+  }
+  return out;
+}
+
 function defaultHomeStack(p: Project): readonly [string, string, string, string] {
   const base = p.heroImage;
   return [base, base, base, base];

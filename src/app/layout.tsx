@@ -6,6 +6,7 @@ import { BodyRouteClass } from "@/components/layout/BodyRouteClass";
 import { DeviceGateScript } from "@/components/layout/DeviceGateScript";
 import { NavGlassFilter } from "@/components/layout/NavGlassFilter";
 import { PortfolioSiteHeader } from "@/components/layout/PortfolioSiteHeader";
+import { getSiteUrl, site } from "@/content/site";
 import "@/styles/utilities.css";
 import "@/styles/portfolio-v2.css";
 import "@/styles/device-gate.css";
@@ -24,9 +25,37 @@ const neueHaas = localFont({
   display: "swap",
 });
 
+const siteUrl = getSiteUrl();
+
 export const metadata: Metadata = {
-  title: "Keerthi Ginuga — Portfolio",
-  description: "Portfolio of Keerthi Ginuga — UX design and research.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: `${site.name} — Portfolio`,
+    template: `%s | ${site.name}`,
+  },
+  description: `Portfolio of ${site.name} — ${site.role}.`,
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteUrl,
+    siteName: site.name,
+    title: `${site.name} — Portfolio`,
+    description: `Portfolio of ${site.name} — ${site.role}.`,
+    images: [
+      {
+        url: "/assets/images/autonomous-vehicle.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Project preview",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${site.name} — Portfolio`,
+    description: `Portfolio of ${site.name} — ${site.role}.`,
+    images: ["/assets/images/autonomous-vehicle.jpg"],
+  },
 };
 
 export default function RootLayout({

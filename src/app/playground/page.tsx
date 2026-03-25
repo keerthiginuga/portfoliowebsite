@@ -2,9 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Playground — Keerthi Ginuga",
+  title: "Playground",
   description:
     "Playground experiments by Keerthi Ginuga. New UX concepts and interaction studies are coming soon.",
+  openGraph: {
+    title: "Playground — Keerthi Ginuga",
+    description:
+      "Interaction experiments, speculative UX systems, and micro-prototypes — coming soon.",
+  },
 };
 
 export default function PlaygroundPage() {

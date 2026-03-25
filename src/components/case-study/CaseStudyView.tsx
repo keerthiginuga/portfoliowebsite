@@ -1,8 +1,16 @@
 import { Fragment } from "react";
 import type { CaseStudyDoc } from "@/content/caseStudies";
+import type { CaseStudyMoreCard } from "@/content/projects";
 import { site } from "@/content/site";
+import { CaseStudyMoreProjects } from "./CaseStudyMoreProjects";
 
-export function CaseStudyView({ doc }: { doc: CaseStudyDoc }) {
+export function CaseStudyView({
+  doc,
+  moreProjects = [],
+}: {
+  doc: CaseStudyDoc;
+  moreProjects?: CaseStudyMoreCard[];
+}) {
   const heroImgClass = `ps-hero-img ps-hero-img--${doc.heroCoverClass}`;
 
   return (
@@ -123,6 +131,8 @@ export function CaseStudyView({ doc }: { doc: CaseStudyDoc }) {
           ) : null}
         </section>
       ) : null}
+
+      <CaseStudyMoreProjects projects={moreProjects} />
 
       <footer className="ps-footer" id="contact">
         <div className="ps-footer-inner">
