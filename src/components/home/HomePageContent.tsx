@@ -1,16 +1,57 @@
 import Link from "next/link";
+import type { MotionProject } from "@/content/projects";
 import { heroCards, quoteWords, skillBlocks } from "@/content/home";
-import { getHomeStackImages, getSelectWorksProjects } from "@/content/projects";
 import { site } from "@/content/site";
 import { HomeSkillsAccordion } from "./HomeSkillsAccordion";
 
-export function HomePage() {
-  const [featured] = getSelectWorksProjects();
-  const stackImages = getHomeStackImages(featured);
+type Props = {
+  motionProjects: MotionProject[];
+};
+
+function CardFace({
+  project,
+  variant,
+}: {
+  project: MotionProject;
+  variant: "front" | "back";
+}) {
+  const faceClass =
+    variant === "front"
+      ? "v2-sonix-content v2-sonix-face v2-sonix-face--front"
+      : "v2-sonix-content v2-sonix-face v2-sonix-face--back";
+
+  return (
+    <div className={faceClass}>
+      <div className="v2-sonix-glare" data-card-glare />
+      <div className="v2-sonix-media v2-sonix-3d-stage" data-card-stage>
+        {project.images.map((src, layerIndex) => (
+          <img
+            key={layerIndex}
+            data-layer={String(layerIndex)}
+            src={src}
+            alt={`${project.title} mockup ${layerIndex + 1}`}
+          />
+        ))}
+      </div>
+      <div className="v2-sonix-copy">
+        <h3 data-project-title>{project.title}</h3>
+        <div className="v2-sonix-tags" data-project-tags>
+          {project.tags.map((tag) => (
+            <span key={tag}>{tag}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function HomePageContent({ motionProjects }: Props) {
+  const p0 = motionProjects[0];
+  const p1 = motionProjects[1] ?? motionProjects[0];
 
   return (
     <main style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-      <section id="home" className="v2-hero" data-motion-enabled="false">
+      <section id="home" className="v2-hero" data-motion-enabled="true">
         <div className="v2-hero-bg" aria-hidden="true" />
 
         <div className="v2-hero-cards" data-parallax-group="hero">
@@ -51,39 +92,24 @@ export function HomePage() {
             <div className="v2-select-works-marquee" aria-hidden="true">
               <div className="v2-select-works-marquee-track">
                 {Array.from({ length: 6 }, (_, i) => (
-                  <span key={i}>{featured.marqueeKey}</span>
+                  <span key={i}>{p0.marqueeKey}</span>
                 ))}
               </div>
             </div>
 
             <div className="v2-sonix-card-wrap" data-card-wrap>
               <article className="v2-sonix-card" data-parallax-card>
-                <Link
-                  href={featured.href}
-                  className="v2-sonix-hitarea"
-                  aria-label={`View ${featured.shortTitle} project`}
-                />
-                <div className="v2-sonix-content" data-card-content>
-                  <div className="v2-sonix-glare" data-card-glare />
-                  <div className="v2-sonix-media v2-sonix-3d-stage" data-card-stage>
-                    {stackImages.map((src, layerIndex) => (
-                      <img
-                        key={layerIndex}
-                        data-layer={String(layerIndex)}
-                        src={src}
-                        alt={`${featured.shortTitle} feature mockup ${layerIndex + 1}`}
-                      />
-                    ))}
-                  </div>
-                  <div className="v2-sonix-copy">
-                    <h3 data-project-title>{featured.title}</h3>
-                    <div className="v2-sonix-tags" data-project-tags>
-                      {featured.tags.map((tag) => (
-                        <span key={tag}>{tag}</span>
-                      ))}
-                    </div>
+                <div className="v2-sonix-tilt">
+                  <div className="v2-sonix-flip" data-card-flip>
+                    <CardFace project={p0} variant="front" />
+                    <CardFace project={p1} variant="back" />
                   </div>
                 </div>
+                <a
+                  className="v2-sonix-hitarea"
+                  href={p0.href}
+                  aria-label={`View ${p0.title}`}
+                />
               </article>
             </div>
           </div>
@@ -92,7 +118,7 @@ export function HomePage() {
         </div>
       </section>
 
-      <div className="v2-see-all-container is-visible">
+      <div className="v2-see-all-container">
         <div className="v2-see-all-link-mask">
           <Link href="/works" className="v2-see-all-link">
             SEE ALL WORKS
@@ -126,6 +152,8 @@ export function HomePage() {
           </div>
         </div>
       </section>
+
+      <div className="v2-quote-cursor" id="quoteCursor" aria-hidden="true" />
 
       <footer className="v2-footer" id="contact">
         <div className="v2-footer-inner">

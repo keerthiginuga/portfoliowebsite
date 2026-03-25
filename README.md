@@ -52,3 +52,10 @@ npm run dev
 - **`BodyRouteClass`** — toggles `v2-home` vs `v2-about-page` on the document body for existing CSS.
 - **`AiCodedFab`** — home + about only; uses `site.sourceCodeUrl`.
 - **Device gate** — `src/styles/device-gate.css`, `public/js/device-gate.js`, `DeviceGateScript` (`afterInteractive`).
+
+## Part 7 — homepage motion (done)
+
+- `HomeMotionClient` + `src/lib/motion/*` — hero parallax, logo scroll rotation, select-works flip/marquee/tilt, quote fill + photo parallax, see-all intersection + transition, quote custom cursor + about transition.
+- `HomePageContent` — flip card DOM (front/back faces), `data-motion-enabled="true"` on hero, `#quoteCursor`, see-all container without forced `is-visible`.
+- `toMotionProjects()` / `MotionProject` — layer images per project for the flip card.
+- **Lenis** not wired yet (static home used it for smooth scroll + nav); native scroll + existing `PortfolioSiteHeader` listeners.

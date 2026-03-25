@@ -26,7 +26,24 @@ export function HomeSkillsAccordion({ eyebrow, blocks }: Props) {
               type="button"
               className="v2-skills-row"
               aria-expanded={isOpen}
-              onClick={() => setOpenIndex((cur) => (cur === i ? null : i))}
+              onClick={() => {
+                setOpenIndex((cur) => {
+                  if (cur === i) {
+                    return null;
+                  }
+                  window.setTimeout(() => {
+                    const openEl = document.querySelector(".v2-skills-item.is-open");
+                    if (!openEl) return;
+                    const rect = openEl.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight;
+                    if (rect.bottom > viewportHeight) {
+                      const distanceToScroll = rect.bottom - viewportHeight + 40;
+                      window.scrollBy({ top: distanceToScroll, behavior: "smooth" });
+                    }
+                  }, 450);
+                  return i;
+                });
+              }}
               style={{
                 width: "100%",
                 background: "none",

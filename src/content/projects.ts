@@ -236,3 +236,22 @@ function defaultHomeStack(p: Project): readonly [string, string, string, string]
 export function getHomeStackImages(project: Project): readonly [string, string, string, string] {
   return project.homeStackImages ?? defaultHomeStack(project);
 }
+
+/** Data shape for homepage scroll-flip card (matches legacy script.js + `href` for Next). */
+export type MotionProject = {
+  href: string;
+  title: string;
+  tags: string[];
+  marqueeKey: string;
+  images: readonly [string, string, string, string];
+};
+
+export function toMotionProjects(list: Project[]): MotionProject[] {
+  return list.map((p) => ({
+    href: p.href,
+    title: p.title,
+    tags: p.tags,
+    marqueeKey: p.marqueeKey,
+    images: getHomeStackImages(p),
+  }));
+}
