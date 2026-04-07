@@ -32,10 +32,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   icons: {
     icon: [
-      { url: "/icon.svg", type: "image/svg+xml", sizes: "any" },
-      { url: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
+      { url: "/icon.svg?v=3", type: "image/svg+xml", sizes: "any" },
+      { url: "/favicon.ico?v=3", sizes: "48x48", type: "image/x-icon" },
     ],
-    shortcut: "/favicon.ico",
+    shortcut: "/favicon.ico?v=3",
   },
   title: {
     default: `${site.name} — Portfolio`,
