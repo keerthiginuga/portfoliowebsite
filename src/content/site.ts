@@ -13,9 +13,9 @@ export function getSiteUrl(): string {
 export const site = {
   name: "Keerthi Ginuga",
   role: "Architect & User Experience Designer",
-  resumePath: "/KeerthiGinuga_Resume.pdf",
+  resumePath: "/KeerthiGinuga_Resume_latest.pdf",
   email: "kginug20@student.scad.edu",
-  linkedinUrl: "https://linkedin.com/in/keerthiginuga",
+  linkedinUrl: "https://www.linkedin.com/in/keerthi-g-079b37239/",
   /** Source for “AI Coded” FAB when nav is ported (Part 6) */
   sourceCodeUrl: "https://github.com/keerthiginuga/portfoliowebsite",
 } as const;

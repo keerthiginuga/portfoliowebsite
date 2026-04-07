@@ -24,14 +24,7 @@ function CardFace({
     <div className={faceClass}>
       <div className="v2-sonix-glare" data-card-glare />
       <div className="v2-sonix-media v2-sonix-3d-stage" data-card-stage>
-        {project.images.map((src, layerIndex) => (
-          <img
-            key={layerIndex}
-            data-layer={String(layerIndex)}
-            src={src}
-            alt={`${project.title} mockup ${layerIndex + 1}`}
-          />
-        ))}
+        <img data-card-cover src={project.coverImage} alt="" />
       </div>
       <div className="v2-sonix-copy">
         <h3 data-project-title>{project.title}</h3>

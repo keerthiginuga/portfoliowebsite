@@ -31,8 +31,6 @@ export type Project = {
   hasCaseStudyPage: boolean;
   /** Slug for /work/[slug] when hasCaseStudyPage */
   slug?: string;
-  /** Homepage selected-works card stack — matches static index layering for SONIX */
-  homeStackImages?: readonly [string, string, string, string];
 };
 
 function img(path: string): string {
@@ -59,12 +57,6 @@ const PROJECT_DATA: Project[] = [
     heroImage: img("autonomous-vehicle.jpg"),
     hasCaseStudyPage: true,
     slug: "sonix",
-    homeStackImages: [
-      img("autonomous-vehicle.jpg"),
-      img("sync.jpg"),
-      img("google-nest.jpg"),
-      img("7west.jpg"),
-    ],
   },
   {
     id: "sealove",
@@ -266,23 +258,14 @@ export function getMoreCaseStudiesForSlug(currentSlug: string): CaseStudyMoreCar
   return out;
 }
 
-function defaultHomeStack(p: Project): readonly [string, string, string, string] {
-  const base = p.heroImage;
-  return [base, base, base, base];
-}
-
-/** Four images for the homepage flip-card stack */
-export function getHomeStackImages(project: Project): readonly [string, string, string, string] {
-  return project.homeStackImages ?? defaultHomeStack(project);
-}
-
 /** Data shape for homepage scroll-flip card (matches legacy script.js + `href` for Next). */
 export type MotionProject = {
   href: string;
   title: string;
   tags: string[];
   marqueeKey: string;
-  images: readonly [string, string, string, string];
+  /** Single cover image — always matches project title on the selected-works card */
+  coverImage: string;
 };
 
 export function toMotionProjects(list: Project[]): MotionProject[] {
@@ -291,6 +274,6 @@ export function toMotionProjects(list: Project[]): MotionProject[] {
     title: p.title,
     tags: p.tags,
     marqueeKey: p.marqueeKey,
-    images: getHomeStackImages(p),
+    coverImage: p.heroImage,
   }));
 }

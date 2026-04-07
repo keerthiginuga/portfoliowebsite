@@ -27,7 +27,7 @@ type FaceRefs = {
   stage: HTMLElement | null;
   title: HTMLElement | null;
   tags: HTMLElement | null;
-  layers: HTMLImageElement[];
+  cover: HTMLImageElement | null;
 };
 
 function getFaceRefs(faceNode: HTMLElement): FaceRefs {
@@ -35,7 +35,7 @@ function getFaceRefs(faceNode: HTMLElement): FaceRefs {
     stage: faceNode.querySelector("[data-card-stage]"),
     title: faceNode.querySelector("[data-project-title]"),
     tags: faceNode.querySelector("[data-project-tags]"),
-    layers: Array.from(faceNode.querySelectorAll("img[data-layer]")) as HTMLImageElement[],
+    cover: faceNode.querySelector("[data-card-cover]"),
   };
 }
 
@@ -51,8 +51,8 @@ export function attachSelectWorks(
   const headerEl = section.querySelector(".v2-select-works-header") as HTMLElement | null;
   const front = getFaceRefs(frontFace);
   const back = getFaceRefs(backFace);
-  if (!front.stage || !front.title || !front.tags || !front.layers.length) return () => {};
-  if (!back.stage || !back.title || !back.tags || !back.layers.length) return () => {};
+  if (!front.stage || !front.title || !front.tags || !front.cover) return () => {};
+  if (!back.stage || !back.title || !back.tags || !back.cover) return () => {};
 
   const glareEl = frontFace.querySelector("[data-card-glare]") as HTMLElement | null;
   const marqueeTracks = [marqueeTrack];
@@ -129,15 +129,10 @@ export function attachSelectWorks(
       });
     }
 
-    refs.layers.forEach((layer, i) => {
-      const src = project.images[i];
-      if (src) {
-        layer.src = src;
-        layer.style.display = "block";
-      } else {
-        layer.style.display = "none";
-      }
-    });
+    if (refs.cover) {
+      refs.cover.src = project.coverImage;
+      refs.cover.alt = project.title;
+    }
     return true;
   };
 
